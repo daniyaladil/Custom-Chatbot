@@ -1,22 +1,25 @@
+
 import 'package:dialog_flowtter/dialog_flowtter.dart';
 import 'package:flutter/material.dart';
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+import 'message.dart';
+
+class Home extends StatefulWidget {
+  const Home({Key? key}) : super(key: key);
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  _HomeState createState() => _HomeState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
-
-  List<Map<String,dynamic>> messages=[];
+class _HomeState extends State<Home> {
   late DialogFlowtter dialogFlowtter;
-  final TextEditingController _controller=TextEditingController();
+  final TextEditingController _controller = TextEditingController();
+
+  List<Map<String, dynamic>> messages = [];
 
   @override
   void initState() {
-    DialogFlowtter.fromFile().then((instance)=>dialogFlowtter=instance);
+    DialogFlowtter.fromFile().then((instance) => dialogFlowtter = instance);
     super.initState();
   }
 
@@ -24,55 +27,57 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Bosormon Bot"),
+        title: Text('Bosormon Bot'),
       ),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          //Messages from MessageScreen\
+      body: Container(
 
-
-          //TextFormField
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 14,vertical: 5),
-            color: Colors.deepPurple,
-            child: Row(
-              children: [
-                Expanded(child: TextField(
-                  controller: _controller,
-                  style: const TextStyle(
-                    color: Colors.white
-                  ),
-                )),
-                TextButton(onPressed: (){
-                  SendMessage(_controller.text);
-                  _controller.clear();
-                }, child: Icon(Icons.send,color: Colors.white,))
-              ],
-            ),
-          )
-        ],
+        //asdasdas
+        child: Column(
+          children: [
+            Expanded(child: MessagesScreen(messages: messages)),
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              color: Colors.deepPurple,
+              child: Row(
+                children: [
+                  Expanded(
+                      child: TextField(
+                        controller: _controller,
+                        style: const TextStyle(color: Colors.white),
+                      )),
+                  IconButton(
+                      onPressed: () {
+                        sendMessage(_controller.text);
+                        _controller.clear();
+                      },
+                      icon: const Icon(Icons.send))
+                ],
+              ),
+            )
+          ],
+        ),
       ),
     );
   }
 
-  SendMessage(String text) async{
-    if(text.isEmpty){
-      print("Empty");
-    }else{
+  sendMessage(String text) async {
+    if (text.isEmpty) {
+      print('Message is empty');
+    } else {
       setState(() {
-        addMessage(Message(text: DialogText(text: [text])),true);
+        addMessage(Message(text: DialogText(text: [text])), true);
       });
-    }
-    DetectIntentResponse response=await dialogFlowtter.detectIntent(queryInput: QueryInput(text:TextInput(text: text)));
-    if (response.message==null){
-      return;
-    }else{
-      addMessage(Message(text: DialogText(text: [text])));
+
+      DetectIntentResponse response = await dialogFlowtter.detectIntent(
+          queryInput: QueryInput(text: TextInput(text: text)));
+      if (response.message == null) return;
+      setState(() {
+        addMessage(response.message!);
+      });
     }
   }
 
-  addMessage(Message message,[bool isUserMessage= false]){
-    messages.add({'message':message,'isUserMessage':isUserMessage});
+  addMessage(Message message, [bool isUserMessage = false]) {
+    messages.add({'message': message, 'isUserMessage': isUserMessage});
   }
 }

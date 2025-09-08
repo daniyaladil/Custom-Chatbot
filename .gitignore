@@ -43,3 +43,7 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+#assets related
+/assets/dialog_flow_auth.json
+/assets
