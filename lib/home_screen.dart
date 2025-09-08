@@ -30,8 +30,7 @@ class _HomeState extends State<Home> {
         title: Text('Bosormon Bot'),
       ),
       body: Container(
-
-        //asdasdas
+        
         child: Column(
           children: [
             Expanded(child: MessagesScreen(messages: messages)),
