@@ -1,4 +1,5 @@
 
+import 'package:custom_chatbot/splash_screen.dart';
 import 'package:flutter/material.dart';
 
 import 'home_screen.dart';
@@ -11,9 +12,8 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'BalochDev Bot',
       theme: ThemeData(brightness: Brightness.dark),
-      home: const Home(),
+      home: SplashScreen(),
     );
   }
 }
