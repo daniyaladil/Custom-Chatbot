@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 
 import '../Constants/colors.dart';
 import '../Constants/fonts.dart';
+import 'message_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -80,6 +81,7 @@ class _HomeScreenState extends State<HomeScreen> {
           padding: const EdgeInsets.all(10),
           child: Column(
             children: [
+              Expanded(child: Messages(messages: messages)),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
@@ -103,7 +105,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     InkWell(
                       onTap: () {
-                        // handle send
+                        sendMessage(_controller.text);
+                        _controller.clear();
                       },
                       borderRadius: BorderRadius.circular(10),
                       child: Container(

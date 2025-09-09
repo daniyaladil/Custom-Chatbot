@@ -1,7 +1,5 @@
 import 'dart:async';
-
 import 'package:custom_chatbot/Home/home_screen.dart';
-import 'package:custom_chatbot/home_screen.dart';
 import 'package:flutter/material.dart';
 
 class SplashScreen extends StatefulWidget {

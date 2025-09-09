@@ -2,7 +2,6 @@
 import 'package:custom_chatbot/splash_screen.dart';
 import 'package:flutter/material.dart';
 
-import 'home_screen.dart';
 
 void main() => runApp(MyApp());
 
