@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:custom_chatbot/Home/home_screen.dart';
+import 'package:dialog_flowtter/dialog_flowtter.dart';
 import 'package:flutter/material.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -10,14 +11,21 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
-
+  late DialogFlowtter dialogFlowtter;
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     WaitFunction();
-
+    DialogFlowtter.fromFile().then((instance) async {
+      dialogFlowtter = instance;
+      // warmup
+      await dialogFlowtter.detectIntent(
+        queryInput: QueryInput(text: TextInput(text: "hello")),
+      );
+    });
   }
+
 
   WaitFunction(){
     Timer(Duration(seconds: 3),(){

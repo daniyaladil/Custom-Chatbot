@@ -1,5 +1,3 @@
-
-
 import 'package:dialog_flowtter/dialog_flowtter.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -20,6 +18,8 @@ class _HomeScreenState extends State<HomeScreen> {
   late DialogFlowtter dialogFlowtter;
 
   List<Map<String,dynamic>> messages=[];
+
+  bool isTyping=false;
 
   @override
   void initState() {
@@ -78,10 +78,10 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: AppColors.accentColor,
       ),
         body: Padding(
-          padding: const EdgeInsets.all(10),
+          padding: const EdgeInsets.only(right: 10,left: 10,bottom: 10),
           child: Column(
             children: [
-              Expanded(child: Messages(messages: messages)),
+              Expanded(child: Messages(messages: messages,isTyping: isTyping,)),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
@@ -105,14 +105,16 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     InkWell(
                       onTap: () {
-                        sendMessage(_controller.text);
-                        _controller.clear();
+                        if (_controller.text.trim().isNotEmpty) {
+                          sendMessage(_controller.text.trim());
+                          _controller.clear();
+                        }
                       },
                       borderRadius: BorderRadius.circular(10),
                       child: Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: Colors.deepPurple, // send button color
+                          color: Colors.deepPurple,
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
@@ -122,6 +124,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                     ),
+
                   ],
                 ),
               ),
@@ -138,16 +141,27 @@ class _HomeScreenState extends State<HomeScreen> {
     } else {
       setState(() {
         _addMessage(Message(text: DialogText(text: [text])), true);
+        isTyping = true; // bot starts typing
       });
 
       DetectIntentResponse response = await dialogFlowtter.detectIntent(
-          queryInput: QueryInput(text: TextInput(text: text)));
-      if (response.message == null) return;
+        queryInput: QueryInput(text: TextInput(text: text)),
+      );
+
+      if (response.message == null) {
+        setState(() {
+          isTyping = false; // stop typing if no response
+        });
+        return;
+      }
+
       setState(() {
         _addMessage(response.message!);
+        isTyping = false; // stop typing when reply arrives
       });
     }
   }
+
 
   _addMessage(Message message, [bool isUserMessage = false]) {
     messages.add({'message': message, 'isUserMessage': isUserMessage});
