@@ -45,5 +45,5 @@ app.*.map.json
 /android/app/release
 
 #assets related
-/assets/dialog_flow_auth.json
+/assets/dialog_flow_funny.json
 /assets

@@ -1,8 +1,6 @@
 import 'package:custom_chatbot/Constants/colors.dart';
-import 'package:custom_chatbot/Home/typing_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
 
 class Messages extends StatefulWidget {
   final List messages;
@@ -14,34 +12,61 @@ class Messages extends StatefulWidget {
 }
 
 class _MessagesState extends State<Messages> {
+  final ScrollController _scrollController = ScrollController();
+
+  final Map<int, bool> likes = {};
+  final Map<int, bool> dislikes = {};
+
+  @override
+  void didUpdateWidget(covariant Messages oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _scrollToBottom();
+  }
+
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     var w = MediaQuery.of(context).size.width;
     return ListView.separated(
+      controller: _scrollController,
       itemBuilder: (context, index) {
         if (index == widget.messages.length) {
-          // typing indicator at end
           return widget.isTyping
               ? const Padding(
             padding: EdgeInsets.all(10),
             child: Text(
               "Chatbot is typing...",
-              style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic),
+              style: TextStyle(
+                  color: Colors.grey, fontStyle: FontStyle.italic),
             ),
           )
               : const SizedBox();
         }
 
-        // normal messages
+        final isLike = likes[index] ?? false;
+        final isDislike = dislikes[index] ?? false;
+
         return Container(
-          margin:  EdgeInsets.all(10),
+          margin: const EdgeInsets.all(10),
           child: Row(
             mainAxisAlignment: widget.messages[index]['isUserMessage']
                 ? MainAxisAlignment.end
                 : MainAxisAlignment.start,
             children: [
               Container(
-                padding:  EdgeInsets.symmetric(vertical: 14, horizontal: 14),
+                padding:
+                const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.only(
                     bottomLeft: const Radius.circular(20),
@@ -57,8 +82,9 @@ class _MessagesState extends State<Messages> {
                 ),
                 constraints: BoxConstraints(maxWidth: w * 2 / 3),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    //  Message text
                     Text(
                       widget.messages[index]['message'].text.text[0],
                       style: TextStyle(
@@ -67,26 +93,73 @@ class _MessagesState extends State<Messages> {
                             : Colors.white,
                       ),
                     ),
-                    widget.messages[index]['isUserMessage']
-                        ?SizedBox():Container(
-                      margin: EdgeInsets.only(left: 5,top: 15),
-                      height: 25,
-                      width: 100,
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(15),
-                          color: Color(0xff7B2CBF)
+                    if (!widget.messages[index]['isUserMessage'])SizedBox(height: 10,),
+
+                    // Inline actions
+                    if (!widget.messages[index]['isUserMessage'])
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Copy
+                            GestureDetector(
+                              onTap: () {
+                                Clipboard.setData(ClipboardData(
+                                    text: widget.messages[index]['message']
+                                        .text.text[0]));
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    duration: Duration(seconds: 1),
+                                      content:
+                                      Text("Copied to clipboard")),
+                                );
+                              },
+                              child: const Icon(
+                                Icons.copy,
+                                size: 16,
+                                color: Colors.white70,
+                              ),
+                            ),
+                            const SizedBox(width: 15),
+
+                            // Upvote
+                            GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  if (isDislike) dislikes[index] = false;
+                                  likes[index] = !isLike;
+                                });
+                              },
+                              child: Icon(
+                                isLike
+                                    ? Icons.arrow_upward
+                                    : Icons.arrow_upward_outlined,
+                                size: 18,
+                                color: isLike ? Colors.green : Colors.white70,
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+
+                            // Downvote
+                            GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  if (isLike) likes[index] = false;
+                                  dislikes[index] = !isDislike;
+                                });
+                              },
+                              child: Icon(
+                                isDislike
+                                    ? Icons.arrow_downward
+                                    : Icons.arrow_downward_outlined,
+                                size: 18,
+                                color: isDislike ? Colors.red : Colors.white70,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.copy,size: 15,),
-                          SizedBox(width: 25,),
-                          Icon(Icons.thumb_up_alt_outlined,size: 15),
-                          SizedBox(width: 5,),
-                          Icon(Icons.thumb_down_alt_outlined,size: 15,),
-                        ],
-                      ),
-                    )
                   ],
                 ),
               ),
@@ -94,17 +167,9 @@ class _MessagesState extends State<Messages> {
           ),
         );
       },
-      separatorBuilder: (_, i) => const Padding(padding: EdgeInsets.only(top: 10)),
-      itemCount: widget.messages.length + 1, // +1 for typing indicator
-    );
-
-  }
-
-  void _copyToClipboard(String text, BuildContext context) {
-    Clipboard.setData(ClipboardData(text: text));
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Copied to clipboard!")),
+      separatorBuilder: (_, i) =>
+      const Padding(padding: EdgeInsets.only(top: 10)),
+      itemCount: widget.messages.length + 1,
     );
   }
-
 }

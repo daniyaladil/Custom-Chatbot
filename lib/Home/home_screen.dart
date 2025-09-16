@@ -15,7 +15,8 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _controller = TextEditingController();
-  late DialogFlowtter dialogFlowtter;
+  late DialogFlowtter funnyBot; // default agent
+  late DialogFlowtter rudeBot;  // rude agent
 
   List<Map<String, dynamic>> messages = [];
 
@@ -24,9 +25,16 @@ class _HomeScreenState extends State<HomeScreen> {
   bool isFunny = true;
   bool isRude = false;
 
+
+
   @override
   void initState() {
-    DialogFlowtter.fromFile().then((instance) => dialogFlowtter = instance);
+    // Load both agents from different credential files
+    DialogFlowtter.fromFile(path: "assets/dialog_flow_funny.json")
+        .then((instance) => funnyBot = instance);
+
+    DialogFlowtter.fromFile(path: "assets/dialog_flow_rude.json")
+        .then((instance) => rudeBot = instance);
     super.initState();
   }
 
@@ -61,6 +69,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       Text(
                         "Online",
+                        style: TextStyle(fontSize: 14),
+                      ),
+                      Text("   |   ",style: TextStyle(fontSize: 14),),
+                      Text(
+                        isFunny?"Funny" :"Rude",
                         style: TextStyle(fontSize: 14),
                       ),
                     ],
@@ -214,35 +227,33 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   sendMessage(String text) async {
-    if (text.isEmpty) {
-      print('Message is empty');
-    } else {
-      setState(() {
-        _addMessage(Message(text: DialogText(text: [text])), true);
-        isTyping = true; // bot starts typing
-      });
+    if (text.isEmpty) return;
 
-      DetectIntentResponse response = await dialogFlowtter.detectIntent(
-        queryInput: QueryInput(text: TextInput(text: text)),
-      );
+    setState(() {
+      _addMessage(Message(text: DialogText(text: [text])), true);
+      isTyping = true;
+    });
 
-      if (response.message == null) {
-        setState(() {
-          isTyping = false;
-        });
-        return;
-      }
+    // Choose which bot to use
+    DialogFlowtter activeBot = isFunny ? funnyBot : rudeBot;
 
-      setState(() {
-        _addMessage(response.message!);
-        isTyping = false;
-      });
+    DetectIntentResponse response = await activeBot.detectIntent(
+      queryInput: QueryInput(text: TextInput(text: text)),
+    );
+
+    if (response.message == null) {
+      setState(() => isTyping = false);
+      return;
     }
+
+    setState(() {
+      _addMessage(response.message!);
+      isTyping = false;
+    });
   }
 
   _addMessage(Message message, [bool isUserMessage = false]) {
     messages.add({'message': message, 'isUserMessage': isUserMessage});
   }
 
-  _changePersonality(personality) {}
 }
