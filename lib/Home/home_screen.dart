@@ -7,7 +7,14 @@ import '../Constants/fonts.dart';
 import 'message_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final DialogFlowtter funnyBot;
+  final DialogFlowtter rudeBot;
+
+  const HomeScreen({
+    super.key,
+    required this.funnyBot,
+    required this.rudeBot,
+  });
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -15,28 +22,12 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _controller = TextEditingController();
-  late DialogFlowtter funnyBot; // default agent
-  late DialogFlowtter rudeBot;  // rude agent
-
   List<Map<String, dynamic>> messages = [];
 
   bool isTyping = false;
-
   bool isFunny = true;
   bool isRude = false;
 
-
-
-  @override
-  void initState() {
-    // Load both agents from different credential files
-    DialogFlowtter.fromFile(path: "assets/dialog_flow_funny.json")
-        .then((instance) => funnyBot = instance);
-
-    DialogFlowtter.fromFile(path: "assets/dialog_flow_rude.json")
-        .then((instance) => rudeBot = instance);
-    super.initState();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -234,8 +225,8 @@ class _HomeScreenState extends State<HomeScreen> {
       isTyping = true;
     });
 
-    // Choose which bot to use
-    DialogFlowtter activeBot = isFunny ? funnyBot : rudeBot;
+    // Pick correct bot
+    DialogFlowtter activeBot = isFunny ? widget.funnyBot : widget.rudeBot;
 
     DetectIntentResponse response = await activeBot.detectIntent(
       queryInput: QueryInput(text: TextInput(text: text)),

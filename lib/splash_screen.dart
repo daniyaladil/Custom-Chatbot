@@ -11,49 +11,61 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
-  late DialogFlowtter dialogFlowtter;
+  late DialogFlowtter funnyBot;
+  late DialogFlowtter rudeBot;
+
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    WaitFunction();
-    DialogFlowtter.fromFile().then((instance) async {
-      dialogFlowtter = instance;
-      // warmup
-      await dialogFlowtter.detectIntent(
-        queryInput: QueryInput(text: TextInput(text: "hello")),
-      );
-    });
+    _initializeBots();
   }
 
+  Future<void> _initializeBots() async {
+    final futures = await Future.wait([
+      DialogFlowtter.fromFile(path: "assets/dialog_flow_funny.json"),
+      DialogFlowtter.fromFile(path: "assets/dialog_flow_rude.json"),
+    ]);
 
-  WaitFunction(){
-    Timer(Duration(seconds: 3),(){
-      Navigator.push(context, MaterialPageRoute(builder: (context)=>HomeScreen()));
-    });
+    funnyBot = futures[0];
+    rudeBot = futures[1];
+
+    // Warmup both bots
+    await Future.wait([
+      funnyBot.detectIntent(
+        queryInput: QueryInput(text: TextInput(text: "hello")),
+      ),
+      rudeBot.detectIntent(
+        queryInput: QueryInput(text: TextInput(text: "hi")),
+      ),
+    ]);
+
+    // Navigate immediately after warmup
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => HomeScreen(
+          funnyBot: funnyBot,
+          rudeBot: rudeBot,
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFFAFAFA),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Center(
-            child: Container(
-              padding: EdgeInsets.all(25),
-              width: 140,
-              height: 140,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(90),
-                color: Color(0xff5A189A)
-              ),
-                child: Image.asset(
-              "assets/logo.png",
-            )),
-          )
-        ],
+      backgroundColor: const Color(0xFFFAFAFA),
+      body: Center(
+        child: Container(
+          padding: const EdgeInsets.all(25),
+          width: 140,
+          height: 140,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(90),
+            color: const Color(0xff5A189A),
+          ),
+          child: Image.asset("assets/logo.png"),
+        ),
       ),
     );
   }
